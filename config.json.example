@@ -1,0 +1,10 @@
+[
+  {
+    "connectionString": "Endpoint=sb://NAMESPACE.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=KEY==;EntityPath=ENTITY",
+    "targetUrl": "http://localhost:3000"
+  },
+  {
+    "connectionString": "Endpoint=sb://NAMESPACE.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=KEY==;EntityPath=ENTITY2",
+    "targetUrl": "http://localhost:8080"
+  }
+]

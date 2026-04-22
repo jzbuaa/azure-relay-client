@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version)",
+      "Bash(dotnet nuget:*)",
+      "Read(//c/Users/zjin/.nuget/packages/microsoft.azure.relay//**)",
+      "Read(//c/Users/zjin/.nuget/packages/**)",
+      "WebFetch(domain:www.nuget.org)",
+      "WebFetch(domain:spectreconsole.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet script:*)",
+      "Bash(dotnet-ildasm /c/Users/zjin/.nuget/packages/microsoft.azure.relay/3.1.1/lib/netstandard2.0/Microsoft.Azure.Relay.dll)",
+      "Bash(powershell -Command ':*)",
+      "Bash(powershell:*)"
+    ]
+  }
+}
