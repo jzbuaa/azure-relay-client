@@ -3,13 +3,39 @@ using RelayClient.Relay;
 using RelayClient.UI;
 using Spectre.Console;
 
+if (args.Length == 1 && args[0] is "--help" or "-h")
+{
+    Console.WriteLine("Usage: relay [--max-log-rows N]");
+    Console.WriteLine("       relay config");
+    Console.WriteLine();
+    Console.WriteLine("relay config opens ~/.relay-client/config.json in the default editor.");
+    return 0;
+}
+
+if (args.Length == 1 && args[0] == "config")
+{
+    try
+    {
+        var path = ConfigLoader.DefaultPath;
+        ConfigLoader.EnsureExists(path);
+        ConfigEditor.Open(path);
+        AnsiConsole.MarkupLine($"[green]Opened config:[/] {Markup.Escape(path)}");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        AnsiConsole.MarkupLine($"[red]Config editor error:[/] {Markup.Escape(ex.Message)}");
+        return 1;
+    }
+}
+
 int maxLogRows = ConsoleUi.DefaultMaxLogRows;
 if (args.Length != 0)
 {
     if (args.Length != 2 || args[0] != "--max-log-rows"
         || !int.TryParse(args[1], out maxLogRows) || maxLogRows <= 0)
     {
-        AnsiConsole.MarkupLine("[red]Argument error:[/] Usage: relay-client --max-log-rows N (N must be a positive integer).");
+        AnsiConsole.MarkupLine("[red]Argument error:[/] Usage: relay [[--max-log-rows N]] or relay config (N must be a positive integer).");
         return 1;
     }
 }
@@ -26,7 +52,7 @@ Console.CancelKeyPress += (_, e) =>
 IReadOnlyList<TunnelConfigEntry> configEntries;
 try
 {
-    configEntries = ConfigLoader.Load("config.json");
+    configEntries = ConfigLoader.Load();
 }
 catch (Exception ex)
 {
