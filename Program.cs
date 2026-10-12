@@ -3,6 +3,17 @@ using RelayClient.Relay;
 using RelayClient.UI;
 using Spectre.Console;
 
+int maxLogRows = ConsoleUi.DefaultMaxLogRows;
+if (args.Length != 0)
+{
+    if (args.Length != 2 || args[0] != "--max-log-rows"
+        || !int.TryParse(args[1], out maxLogRows) || maxLogRows <= 0)
+    {
+        AnsiConsole.MarkupLine("[red]Argument error:[/] Usage: relay-client --max-log-rows N (N must be a positive integer).");
+        return 1;
+    }
+}
+
 // Ctrl+C → graceful shutdown
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
@@ -37,7 +48,7 @@ catch (Exception ex)
 
 // Create tunnels and UI
 var tunnels = tunnelConfigs.Select(tc => new RelayTunnel(tc)).ToList();
-var ui = new ConsoleUi(tunnels);
+var ui = new ConsoleUi(tunnels, maxLogRows);
 
 foreach (var tunnel in tunnels)
     tunnel.RequestLogged += (_, entry) => ui.EnqueueLogEntry(entry);

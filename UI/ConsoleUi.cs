@@ -1,21 +1,34 @@
 namespace RelayClient.UI;
 
-using System.Collections.Concurrent;
 using RelayClient.Relay;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
 public sealed class ConsoleUi
 {
-    private const int MaxLogRows = 50;
+    public const int DefaultMaxLogRows = 10;
 
     private readonly IReadOnlyList<RelayTunnel> _tunnels;
-    private readonly ConcurrentQueue<RequestLogEntry> _pending = new();
-    private readonly List<RequestLogEntry> _log = new();
+    private readonly int _maxLogRows;
+    private readonly object _logLock = new();
+    private readonly Queue<RequestLogEntry> _log = new();
 
-    public ConsoleUi(IReadOnlyList<RelayTunnel> tunnels) => _tunnels = tunnels;
+    public ConsoleUi(IReadOnlyList<RelayTunnel> tunnels, int maxLogRows = DefaultMaxLogRows)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxLogRows);
+        _tunnels = tunnels;
+        _maxLogRows = maxLogRows;
+    }
 
-    public void EnqueueLogEntry(RequestLogEntry entry) => _pending.Enqueue(entry);
+    public void EnqueueLogEntry(RequestLogEntry entry)
+    {
+        lock (_logLock)
+        {
+            if (_log.Count == _maxLogRows)
+                _log.Dequeue();
+            _log.Enqueue(entry);
+        }
+    }
 
     public async Task RunAsync(CancellationToken ct)
     {
@@ -28,13 +41,6 @@ public sealed class ConsoleUi
             {
                 while (!ct.IsCancellationRequested)
                 {
-                    while (_pending.TryDequeue(out var entry))
-                    {
-                        _log.Insert(0, entry);
-                        if (_log.Count > MaxLogRows)
-                            _log.RemoveAt(_log.Count - 1);
-                    }
-
                     layout["tunnels"].Update(BuildTunnelsPanel());
                     layout["log"].Update(BuildLogPanel());
                     ctx.Refresh();
@@ -95,6 +101,10 @@ public sealed class ConsoleUi
 
     private IRenderable BuildLogPanel()
     {
+        RequestLogEntry[] entries;
+        lock (_logLock)
+            entries = _log.Reverse().ToArray();
+
         var table = new Table()
             .Expand()
             .BorderColor(Color.Grey)
@@ -105,7 +115,7 @@ public sealed class ConsoleUi
             .AddColumn(new TableColumn("[grey]Status[/]").NoWrap())
             .AddColumn(new TableColumn("[grey]Latency[/]").NoWrap());
 
-        foreach (var entry in _log)
+        foreach (var entry in entries)
         {
             var statusColor = entry.StatusCode switch
             {

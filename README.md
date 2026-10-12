@@ -39,6 +39,15 @@ Tunnels HTTP traffic from [Azure Relay hybrid connections](https://learn.microso
 
    The console shows live tunnel status and a request log. Press `Ctrl+C` to stop.
 
+   The request log keeps only the most recent **10 requests**, newest first.
+   Configure the limit with a positive integer:
+
+   ```bash
+   dotnet run -- --max-log-rows 20
+   ```
+
+   Use a smaller limit if the log does not fit your terminal.
+
 ## Getting a connection string
 
 In the Azure portal: **Azure Relay** → your namespace → **Hybrid Connections** → select connection → **Shared access policies** → copy the primary connection string.
