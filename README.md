@@ -37,7 +37,9 @@ git push origin v_1.2.3
 ```
 
 The GitHub Actions workflow builds `relay-client.1.2.3.nupkg`, saves it as a
-workflow artifact, and attaches it to a GitHub Release for that tag. The package
+workflow artifact, and creates or updates the GitHub Release for that tag.
+If the release already exists, its installer asset is replaced while its release
+notes and settings are preserved. The package
 version comes from the tag, overriding the project's default version.
 Prerelease tags such as `v_1.2.3-beta.1` create prereleases. Tags must use
 `v_MAJOR.MINOR.PATCH` with an optional prerelease suffix; invalid `v_` tags fail

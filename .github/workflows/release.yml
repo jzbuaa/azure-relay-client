@@ -57,13 +57,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $package = Get-Item ".\bin\nupkg\relay-client.$env:RELEASE_VERSION.nupkg"
-          $releaseArgs = @(
-            'release', 'create', $env:GITHUB_REF_NAME, $package.FullName,
-            '--repo', $env:GITHUB_REPOSITORY,
-            '--verify-tag', '--generate-notes',
-            '--title', "relay $env:RELEASE_VERSION"
+          $releaseTags = @(
+            gh api --paginate "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" --jq '.[].tag_name'
           )
-          if ($env:RELEASE_VERSION.Contains('-')) {
-            $releaseArgs += '--prerelease'
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to check existing releases."
           }
-          gh @releaseArgs
+          if ($releaseTags -ccontains $env:GITHUB_REF_NAME) {
+            gh release upload $env:GITHUB_REF_NAME $package.FullName --repo $env:GITHUB_REPOSITORY --clobber
+          } else {
+            $releaseArgs = @(
+              'release', 'create', $env:GITHUB_REF_NAME, $package.FullName,
+              '--repo', $env:GITHUB_REPOSITORY,
+              '--verify-tag', '--generate-notes',
+              '--title', "relay $env:RELEASE_VERSION"
+            )
+            if ($env:RELEASE_VERSION.Contains('-')) {
+              $releaseArgs += '--prerelease'
+            }
+            gh @releaseArgs
+          }
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to publish the release package."
+          }
